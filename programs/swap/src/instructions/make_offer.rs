@@ -1,11 +1,12 @@
-use crate::constants::ANCHOR_DISCRIMINATOR;
-use crate::{transfer_tokens, Offer};
 use anchor_lang::prelude::*;
-use anchor_spl::token::accessor::{authority, mint};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
+
+use crate::{Offer, ANCHOR_DISCRIMINATOR};
+
+use super::transfer_tokens;
 
 #[derive(Accounts)]
 #[instruction(id: u64)]
@@ -25,7 +26,7 @@ pub struct MakeOffer<'info> {
         associated_token::authority = maker,
         associated_token::token_program = token_program
     )]
-    pub maker_token_mint_a: InterfaceAccount<'info, TokenAccount>,
+    pub maker_token_account_a: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
@@ -51,11 +52,11 @@ pub struct MakeOffer<'info> {
 }
 
 pub fn send_offered_tokens_to_vault(
-    context: Context<MakeOffer>,
+    context: &Context<MakeOffer>,
     token_a_offered_amount: u64,
 ) -> Result<()> {
     transfer_tokens(
-        &context.accounts.maker_token_mint_a,
+        &context.accounts.maker_token_account_a,
         &context.accounts.vault,
         &token_a_offered_amount,
         &context.accounts.token_mint_a,
